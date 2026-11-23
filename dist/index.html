@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#162625">
+<meta name="description" content="A short playable arrival at Cove Way’s ferry landing.">
+<title>Cove Way • Ferry Landing</title>
+<link rel="stylesheet" href="style.css">
+<script type="module" src="game.mjs"></script>
+</head>
+<body>
+<header class="mast shell">
+ <a class="wordmark" href="index.html"><span aria-hidden="true" class="seal"><svg viewBox="0 0 24 24"><path d="M2 15 Q5 12 8 15 T14 15 T20 15 M3 19 Q6 16 9 19 T15 19 T21 19 M6 10 L11 3 L11 12 M13 6 L18 11 L13 11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg></span><span>Cove Way<small>FERRY LANDING</small></span></a>
+ <div class="mast-actions"><span class="issue">CHAPTER 01</span><button class="light map-toggle" type="button" id="markers" aria-pressed="true"><span aria-hidden="true">◇</span> <span id="marker-caption">Markers on</span></button></div>
+</header>
+<main class="shell">
+ <article class="chapter" aria-label="Cove Way playable opening">
+  <div class="game-window" id="stage">
+   <canvas id="world" tabindex="0" aria-label="Ferry landing. Use arrow keys or W A S D to walk, and E to speak or interact. You can also click the path or tap a labelled landmark."></canvas>
+   <div id="pins" aria-label="Landmark controls"></div>
+   <div class="corner-title" aria-hidden="true"><span>01 / ARRIVAL</span><strong>The lower quay</strong></div>
+   <div class="loading" id="loading" role="status"><span></span><strong>Coming ashore…</strong></div>
+   <button type="button" id="near" class="near-action" hidden><span class="kbd" aria-hidden="true">E</span> <span></span></button>
+   <section class="dialogue" id="dialogue" aria-label="Conversation" role="dialog" hidden>
+    <div class="speech-label"><span id="speaker"></span><span id="speech-step"></span></div>
+    <p id="speech-text" aria-live="polite"></p>
+    <button type="button" class="speech-next" id="conversation-next">Continue <span aria-hidden="true">↵</span></button>
+   </section>
+  </div>
+  <div class="dashboard">
+   <div class="objective">
+    <span class="journal-icon" aria-hidden="true">⌖</span>
+    <div><p class="caps" id="journal-label">COURIER’S NOTE</p><h1 id="objective" aria-live="polite">Check in at the ticket office</h1><p class="hint" id="hint">One parcel from the country road. Start at the ferry landing.</p></div>
+   </div>
+   <div class="dashboard-actions"><button type="button" id="guide" class="light" disabled>Show me the way <span aria-hidden="true">↗</span></button></div>
+  </div>
+ </article>
+ <div class="help-row"><p class="desktop-help"><b>WASD</b> or <b>arrows</b> to walk. <b>E</b> to interact. You can also click the quay.</p><p class="mobile-help">Tap the path to walk, or tap a marker to approach and talk.</p><button type="button" class="quiet" id="restart" disabled>Restart chapter</button></div>
+ <p class="live-sr" id="status" aria-live="polite"></p>
+</main>
+<dialog id="restart-confirm" aria-labelledby="restart-title">
+ <h2 id="restart-title">Start from the ferry again?</h2><p>This starts the opening chapter over.</p>
+ <div><button type="button" class="light" id="cancel-restart">Keep playing</button><button type="button" class="light strong" id="yes-restart">Restart</button></div>
+</dialog>
+</body>
+</html>

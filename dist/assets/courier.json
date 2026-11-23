@@ -1,0 +1,36 @@
+{
+  "image": "courier.png",
+  "cell": {
+    "width": 96,
+    "height": 96
+  },
+  "anchor": {
+    "x": 48,
+    "y": 84
+  },
+  "rows": {
+    "south": 0,
+    "west": 1,
+    "east": 2,
+    "north": 3
+  },
+  "idleColumn": 0,
+  "walkColumns": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "frameMs": 120,
+  "loop": true,
+  "pixelArt": true,
+  "display": {
+    "width": 48,
+    "height": 48,
+    "anchor": {
+      "x": 24,
+      "y": 42
+    }
+  },
+  "recommendedMinimumPreviewCellSize": 96
+}
