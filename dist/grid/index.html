@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#172824">
+<meta name="description" content="Walk Cove Way’s village, show the tile grid, and try limited movement range.">
+<title>Cove Way • Village Grid</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="grid.css">
+<script type="module" src="village.mjs"></script>
+</head>
+<body>
+<header class="mast shell">
+ <a class="wordmark" href="../" aria-label="Return to the original Cove Way prototype"><span aria-hidden="true" class="seal"><svg viewBox="0 0 24 24"><path d="M2 15 Q5 12 8 15 T14 15 T20 15 M3 19 Q6 16 9 19 T15 19 T21 19 M6 10 L11 3 L11 12 M13 6 L18 11 L13 11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg></span><span>Cove Way<small>VILLAGE GRID / PROTOTYPE</small></span></a>
+ <a class="old-link" href="../">Original ferry scene ↗</a>
+</header>
+<main class="shell">
+ <section class="board-header">
+  <div><p class="caps">COVE WAY / ORTHOGRAPHIC VILLAGE</p><h1>Village landing</h1></div>
+  <div class="switches" aria-label="Scene controls">
+   <button type="button" class="light" id="grid" aria-pressed="false">▦ <span>Grid off</span></button>
+   <button type="button" class="light" id="range" aria-pressed="false">◇ <span>Movement range</span></button>
+  </div>
+ </section>
+ <article class="chapter">
+  <div class="game-window" id="village-stage">
+   <canvas id="village" tabindex="0" aria-label="Walk the village with arrow keys or W A S D, or tap a tile to walk there. Press E beside a landmark to interact."></canvas>
+   <div id="pins" aria-label="Landmarks"></div>
+   <div class="map-card" id="map-card"><span>01</span><strong>Harbour district</strong></div>
+   <div class="loading" id="loading" role="status"><span></span><strong>Opening the village…</strong></div>
+   <button type="button" id="near" class="near-action" hidden><span class="kbd" aria-hidden="true">E</span> <span></span></button>
+   <section class="dialogue" id="dialogue" aria-label="Conversation" role="dialog" hidden>
+    <div class="speech-label"><span id="speaker"></span><span id="speech-step"></span></div>
+    <p id="speech-text" aria-live="polite"></p>
+    <button type="button" class="speech-next" id="next">Continue <span aria-hidden="true">↵</span></button>
+   </section>
+  </div>
+  <div class="dashboard">
+   <div class="objective"><span class="journal-icon" aria-hidden="true">⌖</span>
+    <div><p class="caps" id="label">COURIER’S NOTE</p><h2 id="goal" aria-live="polite">Check in at the ticket office</h2><p class="hint" id="hint">You’re at the ferry dock. Walk onto the quay.</p></div>
+   </div>
+   <div class="dashboard-actions">
+    <button type="button" id="guide" class="light" disabled>Show me the way ↗</button>
+    <button type="button" id="new-pass" class="light" hidden>New movement pass ↻</button>
+   </div>
+  </div>
+ </article>
+ <div class="help-row"><p class="desktop-help"><b>WASD</b> or <b>arrows</b> to step. Click a tile to find a route. <b>E</b> to interact.</p><p class="mobile-help">Tap a tile to walk. Tap a landmark to approach and talk.</p><button type="button" class="quiet" id="restart">Restart</button></div>
+ <p class="live-sr" id="status" aria-live="polite"></p>
+</main>
+</body>
+</html>
