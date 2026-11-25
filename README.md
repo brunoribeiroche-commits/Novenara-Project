@@ -18,6 +18,7 @@ node --test
 
 The village currently supports movement, dialogue and the parcel delivery. The grid variant demonstrates movement range, not combat. The three ferry-fare quests are planned, not implemented.
 
-- [Courier atlas and animation](docs/COURIER-MODEL.md)
+- [Courier art sheet and animation guide](docs/COURIER-ANIMATION-HOW-TO.md)
+- [Legacy V4 courier atlas](docs/COURIER-MODEL.md)
 - [Grid prototype](docs/GRID-VILLAGE.md)
 - [Visual style guide](docs/VISUAL-STYLE-GUIDE.md)

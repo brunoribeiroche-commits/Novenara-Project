@@ -1,4 +1,8 @@
-# Courier model · V4
+# Courier model
+
+The approved **Sharper ink** courier now walks in eight directions in the free-movement village. See [The Courier in Motion](COURIER-ANIMATION-HOW-TO.md) for the current art, animation specs, and [illustrated booklet](art-reference/Novenara-Courier-Animation-Booklet.pdf). The legacy grid variant still uses V4.
+
+## V4 pixel sprite (legacy)
 
 **Approved:** November 21, 2026 (Pacific time). This is the approved game model, not the earlier 48 px sketches. The courier is a young adult carrying someone else's package, not dressed for battle: jet-black hair with one white lock at the front, black work clothes with a crimson scarf and accents, dark boots, and a tan delivery satchel. The white lock may be out of view when the head turns away. This outfit does not set the player's elemental affiliation.
 
@@ -14,4 +18,4 @@
 
 Use hard pixel edges with no texture smoothing. Place the world position at the boot anchor, use a small foot collider rather than the full frame, and retain the last facing when input stops. Do not mirror rows: the hair and bag are asymmetric. Walk and idle are the only approved animations. Keep visual revisions versioned; do not overwrite the approved PNG with a review draft.
 
-The game asset is byte-for-byte the approved V4 sprite atlas. Companion metadata is `dist/assets/courier.json`.
+The retained V4 asset is byte-for-byte the approved V4 sprite atlas. Companion metadata is `dist/assets/courier.json`.

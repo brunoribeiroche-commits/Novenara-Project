@@ -1,6 +1,6 @@
 # Novenara · Visual Style Guide
 
-**Version 0.2 · Living document · November 2026**
+**Version 0.3 · Living document · November 2026**
 
 **Direction:** Hand-inked storybook magitech. Build like a riverside village, draw like an illustrated adventure, and make the magic look like infrastructure someone maintains.
 
@@ -12,7 +12,7 @@ This guide sets the shared visual language for environments, characters, props, 
 | --- | --- | --- |
 | [Original ferry-arrival board](art-reference/ferry-arrival-original-board.png), **top panel A only** · 1536 × 1024 source board | Ink weight, warm timber-and-plaster buildings, terracotta roofs, awnings, and practical elemental equipment | The diagonal composition or the painted and pixel treatments in panels B and C |
 | [Cove Way port art](COVE-WAY-PORT-ART.md) and [private playtest](https://novenara-ferry-playtest.bfribeiro.chatgpt.site/) | North-up layout, material treatment, arrival staging, and courier-relative scale | The optional hex encounter as a story beat or a commitment to grid combat |
-| [V4 courier model](COURIER-MODEL.md) and [source atlas](../dist/assets/courier.png) · 480 × 384, four rows of five 96 × 96 frames | Character identity, color blocking, silhouettes, facing rows, foot anchor, and walk cadence | One asset ratio across every realm without a local scale check |
+| [The Courier in Motion](COURIER-ANIMATION-HOW-TO.md) and [approved Sharper ink reference](../dist/assets/courier-ink-idle-se.png) | Current courier identity, ink and palette, eight-direction atlas, foot anchor, and ability animation workflow | Mirrored asymmetric details or one asset scale across every realm without a local scale check |
 
 ![Original ferry-arrival board. The top panel A is the visual reference.](art-reference/ferry-arrival-original-board.png)
 
@@ -40,7 +40,7 @@ Make regional differences grow out of climate, available materials, craft, and t
 
 ## Courier-to-environment proportions
 
-Use the standing V4 model as the ruler. In the ferry dock playtest the 108 px display frame includes transparent padding; the body is about 83 world px high, with a native atlas anchor at (48, 84). Use that anchor and visible silhouette rather than the frame size. Props meet the courier at plausible contact heights: crate around the waist, bench seat at the knee, ticket ledge near the waist, and a doorway above the head. Use **Check scale** to put the courier and a prop on the same ground line. Resize an oversized object only if the art itself is oversized; do not shorten a correctly proportioned bench to fix an oversized collision box.
+Use the approved Sharper ink standing silhouette as the ruler. In the ferry dock playtest the body is about 83 world px high. The current ink atlas uses a (96, 230) native ground anchor within each padded 192 × 256 cell. Use the ground anchor and visible silhouette rather than the frame size. Props meet the courier at plausible contact heights: crate around the waist, bench seat at the knee, ticket ledge near the waist, and a doorway above the head. Use **Check scale** to put the courier and a prop on the same ground line. Resize an oversized object only if the art itself is oversized; do not shorten a correctly proportioned bench to fix an oversized collision box.
 
 ## Prompt for new artwork
 
@@ -64,3 +64,5 @@ For each asset, specify output dimensions and transparency/layer needs. For a sp
 - **0.1:** Captures Option A and the hidden-grid rules; records courier scale as open pending a side-by-side playtest. No game files changed.
 
 - **0.2:** Records approved courier-relative scale and free exploration. Adds a link to the port example and replaces square-grid layout as a design prerequisite. Documentation only.
+
+- **0.3:** Makes the approved ink courier and eight-direction walk the current art reference. The existing grid build retains V4.
