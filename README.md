@@ -20,3 +20,4 @@ The village currently supports movement, dialogue and the parcel delivery. The g
 
 - [Courier atlas and animation](docs/COURIER-MODEL.md)
 - [Grid prototype](docs/GRID-VILLAGE.md)
+- [Visual style guide](docs/VISUAL-STYLE-GUIDE.md)
