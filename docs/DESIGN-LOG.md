@@ -21,6 +21,13 @@ This is the running record of what Bruno has decided, what the prototype actuall
 ### Next design pass
 Map obstacles and skill checks before building the quests. For each starter, identify a first quest that does not require quest points, then a distinct second quest after each reachable first outcome. Flag routes that depend on unpriced unlocks. Check the optional third quest separately. Combat math, exact skill trees and costs, dialogue, and the larger ending remain open.
 
+## 2026-11-24 | Ferry dock art, opening, and free movement
+
+- **Decided:** Use free movement for exploration and lay out environments at courier scale in world space. The smaller hex trial and straightened vertical pairs are useful comparisons, but a grid is not a prerequisite for building the game right now. [Movement decision](MOVEMENT.md).
+- **Decided:** Keep the hand-inked Option A direction for the port: north-up staging, warm plaster and timber, terracotta, river teal, and practical elemental fixtures. Use the approved courier proportions and real prop footprints. Keep the full-size bench; fix collision rather than changing good scale. [Port art](COVE-WAY-PORT-ART.md).
+- **Playtested in the private dock build:** Arrival on the ferry, ferryman’s farewell, the Vessar notice over the old ferry sign, the guard by the ticket station and the road into the village. Free/Hex toggle, eight courier facings, Check scale and map feedback available. [Opening beats](COVE-WAY-OPENING.md).
+- **Prototype only / open:** The private dock ends at the village approach and does not include the parcel handoff from the older main build or any of the fare quests. Its optional hex crab encounter is a test, not canon. Combat movement, targeting and the route from the quay into the village remain open. No gameplay files are changed by this documentation update.
+
 ## How to maintain this log
 - Append a dated entry for new decisions, meaningful scope changes, and playtest findings. Say why a decision was made when it would change future work.
 - Mark entries **Decided**, **Prototype only**, or **Open** where the distinction matters. If a decision changes, note what it supersedes rather than quietly rewriting history.
