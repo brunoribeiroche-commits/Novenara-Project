@@ -10,6 +10,11 @@ export const WALK_ZONES=[
  // The shallow strip in front of the vendor. Counter and awning remain solid.
  [[1220,519],[1280,523],[1336,531],[1412,540],[1493,552],[1519,574],[1479,613],[1370,630],[1276,621],[1221,581],[1206,552]]
 ];
+export const GUST_BARREL_START=Object.freeze({x:805,y:566});
+export const GUST_BARREL_FOOTPRINT=Object.freeze({halfW:23,halfD:15});
+let gustBarrel={...GUST_BARREL_START};
+// Refresh the click-to-walk mesh only when the push finishes or the scene resets.
+export function setGustBarrel(p){gustBarrel={...p};mesh=null;}
 const BLOCKERS=[
  {x:482,y:504,rx:22,ry:11}, // uniformed guard
  {x:853,y:450,rx:24,ry:12}, // ticket office customer
@@ -36,7 +41,13 @@ export function pointInPolygon(x,y,vertices){
 function pointAllowed(x,y){
  return WALK_ZONES.some(p=>pointInPolygon(x,y,p))&&!BLOCKERS.some(o=>((x-o.x)/o.rx)**2+((y-o.y)/o.ry)**2<1);
 }
+export function barrelCanOccupy(p){
+ const {halfW:w,halfD:d}=GUST_BARREL_FOOTPRINT;
+ return [-w,0,w].every(dx=>[-d,0,d].every(dy=>pointAllowed(p.x+dx,p.y+dy)));
+}
 export function isWalkable(x,y,r=5){
+ const {halfW:w,halfD:d}=GUST_BARREL_FOOTPRINT;
+ if(Math.abs(x-gustBarrel.x)<w+r&&Math.abs(y-gustBarrel.y)<d+r)return false;
  return Number.isFinite(x)&&Number.isFinite(y)&&pointAllowed(x,y)&&pointAllowed(x-r,y)&&pointAllowed(x+r,y)&&pointAllowed(x,y-r)&&pointAllowed(x,y+r);
 }
 export function moveWithin(p,dx,dy){

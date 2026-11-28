@@ -1,3 +1,4 @@
+import {ART,CASTS,RELEASE,DURATION} from '../dist/gust.mjs';
 import {BANK_ART,BANK_DARK_LAMP,BANK_W,BANK_H,BANK_CELS,BANK_DURATION} from '../dist/bank-the-flame.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -16,6 +17,9 @@ test('the free-movement entry point ignores attempted movement and recasting unt
   [BANK_ART]:[BANK_W*BANK_CELS,BANK_H],[BANK_DARK_LAMP]:[128,72],
   [INK_WALK_ASSET]:[INK_CELL_WIDTH*INK_COLUMNS,INK_CELL_HEIGHT*8],[INK_SE_IDLE_ASSET]:[412,1048],
   [CINDER_ASSET]:[CINDER_SIZE.width,CINDER_SIZE.height],[CINDER_FINAL_IDLE]:[192,256],[CINDER_IDLE_OVERLAY]:[192,256]};
+ for(const a of Object.values(CASTS))dims[a.asset]=[a.w*12,256];
+ for(const a of Object.values(ART))dims[a.asset]=[a.size*a.cols,a.size*a.rows];
+ dims['assets/gust/barrel.webp']=[180,215];
  Object.assign(globalThis,{document:{querySelector:get,createElement:make,addEventListener(){}},
   window:{ResizeObserver:class{},devicePixelRatio:1,addEventListener:(n,f)=>events[n]=f},ResizeObserver:class{observe(){}},
   matchMedia:()=>({matches:false}),requestAnimationFrame:f=>queue.push(f),
@@ -48,4 +52,20 @@ test('the free-movement entry point ignores attempted movement and recasting unt
  assert.ok(seenFinal);assert.match(status.textContent,/source has gone dark/);
  assert.ok(draw.includes(BANK_DARK_LAMP));assert.equal(bank.disabled,false);
  key('b');assert.match(status.textContent,/No lit flame in range/);
+ // Use the actual scene entry point and walk to an east-facing, in-range test.
+ const go=(x,y)=>{const [,,,,l,u,w]=map;scene.events.click({clientX:l+x*w/WORLD.w,clientY:u+y*w/WORLD.w});};
+ go(691,566);for(let j=0;j<95;j++)step(t+=30);
+ go(710,566);for(let j=0;j<20;j++)step(t+=30);
+ assert.equal(scene.dataset.facing,'e');
+ assert.equal(scene.dataset.barrelX,'805.00');
+ assert.equal(get('#gust').disabled,false);key('r');assert.equal(get('#gust').disabled,true);
+ const start=t;key('ArrowLeft');key('f');go(630,560);
+ while(t-start<RELEASE-15){step(t+=15);assert.equal(scene.dataset.barrelX,'805.00');}
+ let wind=false, pose=false;
+ while(t-start<DURATION+25){step(t+=15);wind ||= scene.dataset.gustWind==='e';pose ||= scene.dataset.gustFrame==='6';}
+ assert.ok(pose&&wind&&draw.includes(ART.e.asset));
+ assert.ok(Number(scene.dataset.barrelX)>805);
+ assert.match(status.textContent,/slides it back/);
+ assert.equal(get('#gust').disabled,false);
+ assert.equal(scene.dataset.facing,'e');
 });
