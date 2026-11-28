@@ -16,9 +16,10 @@ Open http://localhost:8000/ for the original opening or http://localhost:8000/gr
 node --test
 ```
 
-The village currently supports movement, dialogue and the parcel delivery. The grid variant demonstrates movement range, not combat. The three ferry-fare quests are planned, not implemented.
+The village currently supports movement, dialogue and the parcel delivery. Press **F** or choose **Cinder Fist** to preview the animation; face the camera first to compare the cast with the front idle. The grid variant demonstrates movement range, not combat. The three ferry-fare quests are planned, not implemented.
 
 - [Courier art sheet and animation guide](docs/COURIER-ANIMATION-HOW-TO.md)
+- [Cinder Fist animation reference](docs/CINDER-FIST-ANIMATION.md)
 - [Legacy V4 courier atlas](docs/COURIER-MODEL.md)
 - [Grid prototype](docs/GRID-VILLAGE.md)
 - [Visual style guide](docs/VISUAL-STYLE-GUIDE.md)

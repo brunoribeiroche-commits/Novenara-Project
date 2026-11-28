@@ -1,0 +1,28 @@
+// Bruno's 4 × 3 front-facing sheet. Each cel uses its measured boot anchor.
+export const CINDER_ASSET='assets/cinder-fist-front.webp';
+export const CINDER_SIZE=Object.freeze({width:1448,height:1086});
+export const CINDER_FACING='s';
+const CELL=362;
+const ground=[[183.5,349],[185,349],[184.5,348],[184,348],
+ [184.5,348],[184.5,348],[185,348],[186,349],
+ [185,348],[184,349],[184.5,349],[182.5,348]];
+const durations=[90,85,85,105,100,85,80,90,100,100,110,675];
+export const CINDER_FRAMES=Object.freeze(durations.map((ms,i)=>{
+ const row=Math.floor(i/4),col=i%4,[anchorX,anchorY]=ground[i];
+ return Object.freeze({sx:col*CELL,sy:row*CELL,sw:CELL,sh:CELL,ms,anchorX,anchorY});
+}));
+export const CINDER_DURATION=durations.reduce((a,b)=>a+b,0);
+export function cinderCel(ms){
+ if(!Number.isFinite(ms)||ms<0||ms>=CINDER_DURATION)return null;
+ let k=0;
+ for(const f of CINDER_FRAMES){if(ms<f.ms)return {index:k,...f};ms-=f.ms;k++;}
+ return null;
+}
+// Frame 1 fitted by alpha silhouette against the GitHub hand-inked south idle
+// (walk atlas, col 0 / row 0; 210 px body). Use this exact transform for every
+// cel, including its effects. Per-cel boot anchors still keep the feet grounded.
+const frontIdleFit=Object.freeze({xScale:0.5648/210,yScale:0.63255/210,xOffset:3.33/210});
+export function cinderBounds(x,y,body,f){
+ const sx=body*frontIdleFit.xScale,sy=body*frontIdleFit.yScale;
+ return {x:x+body*frontIdleFit.xOffset-f.anchorX*sx,y:y-f.anchorY*sy,w:f.sw*sx,h:f.sh*sy};
+}
