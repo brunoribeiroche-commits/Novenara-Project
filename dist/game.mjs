@@ -1,3 +1,4 @@
+import {CINDER_ASSET,CINDER_SIZE,CINDER_DURATION,cinderCel,cinderBounds} from './cinder-fist.mjs';
 import {INK_WALK_ASSET,INK_SE_IDLE_ASSET,INK_CELL_WIDTH,INK_CELL_HEIGHT,INK_COLUMNS,INK_WALK_DIRECTIONS,inkWalkFrame,inkWalkBounds,inkSeIdleBounds,inkWalkHeading} from './courier-ink-walk.mjs';
 import {WORLD,SPAWN,LANDMARKS,closestLandmark,pathTo,distance,moveWithin,initialStory,objective,objectiveId,interact,isWalkable} from './world.mjs';
 
@@ -7,6 +8,8 @@ const pins=$('#pins'),near=$('#near'),dialogue=$('#dialogue'),nextButton=$('#con
 const status=$('#status'),guide=$('#guide'),markerButton=$('#markers'),confirm=$('#restart-confirm');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const mobile=matchMedia('(pointer: coarse)');
+const cinderButton=$('#cinder');
+let cinderArt=null,cinderTime=null;
 let art,atlas,inkIdle,ready=false,markerMode=true;
 let p={...SPAWN,facing:'n'}, camera={x:0,y:0,z:1}, width=0,height=0,pixelRatio=1,cameraReady=false;
 let path=[], autoTarget=null, clickTarget=null, talked=null, story=initialStory();
@@ -15,6 +18,11 @@ const keys=new Set(),buttonById=new Map();
 const speed=205,diag=.7071067811865476;
 function notify(s){status.textContent=s;}
 function image(path){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Could not load '+path));i.src=path;});}
+function castCinder(){
+ if(!ready||!cinderArt||talked||confirm.open)return;
+ keys.clear();cancelPath();cinderTime=0;
+ notify('Cinder Fist.');
+}
 function pixelScale(){
  const fit=Math.max(width/WORLD.w,height/WORLD.h);
  return Math.max(fit,width<640?Math.min(.78, Math.max(.52,height/760)):fit);
@@ -76,7 +84,7 @@ function walkTo(goal,id=null){
  if(h&&distance(p,h)<=h.range){openConversation(id);return;}
  const route=pathTo(p,goal,{maxSnap:id?18:4});
  if(!route.length){if(!id)return;notify('No clear path from here. Try walking onto the quay first.');return;}
- path=route;autoTarget=id;clickTarget=path.at(-1);if(id)notify('Walking to '+h.name+'.');
+ cinderTime=null;path=route;autoTarget=id;clickTarget=path.at(-1);if(id)notify('Walking to '+h.name+'.');
  if(!mobile.matches)canvas.focus({preventScroll:true});
 }
 function doNearest(){
@@ -87,7 +95,7 @@ function doNearest(){
 function openConversation(id){
  const h=LANDMARKS.find(target=>target.id===id);if(talked||!h||distance(p,h)>h.range+4)return;
  const found=interact(id,story);talked={lines:found.lines,state:found.state,index:0,h};
- keys.clear();cancelPath();dialogue.hidden=false;near.hidden=true;positionPins();
+ cinderTime=null;keys.clear();cancelPath();dialogue.hidden=false;near.hidden=true;positionPins();
  $('#speaker').textContent=h.role;paintSpeech();nextButton.focus({preventScroll:true});
 }
 function paintSpeech(){
@@ -113,7 +121,12 @@ function draw(now){
  ctx.save();ctx.fillStyle='#10140b72';ctx.beginPath();ctx.ellipse(x,y-1,20*z*(.82+.18*n),7*z,0,0,Math.PI*2);ctx.fill();ctx.restore();
  // Keep the V4 standing height on this map. The dock playtest has its own scale.
  const body=74*scale,clock=walkTime>0&&!reduced.matches?walkTime:null;
- if(clock===null&&p.facing==='se'){
+ // The cast is front-facing artwork, not a change to locomotion facing.
+ const cast=cinderTime===null?null:cinderCel(reduced.matches?CINDER_DURATION-1:cinderTime);
+ if(cast&&cinderArt){
+  const pos=cinderBounds(x,y,body,cast);
+  ctx.drawImage(cinderArt,cast.sx,cast.sy,cast.sw,cast.sh,pos.x,pos.y,pos.w,pos.h);
+ }else if(clock===null&&p.facing==='se'){
   const pos=inkSeIdleBounds(x,y,body,inkIdle.naturalWidth,inkIdle.naturalHeight);
   ctx.drawImage(inkIdle,pos.x,pos.y,pos.w,pos.h);
  }else{
@@ -152,6 +165,7 @@ function movement(dt){
 }
 function frame(now){
  const dt=last?Math.min(.033,(now-last)/1000):0;last=now;
+ if(cinderTime!==null){cinderTime+=dt*1000;if(cinderTime>=CINDER_DURATION)cinderTime=null;}
  if(movement(dt)){if(!startedAt)startedAt=now;walkTime=Math.max(1,now-startedAt);}else{startedAt=0;walkTime=0;}
  promptNear();draw(now);raf=requestAnimationFrame(frame);
 }
@@ -160,6 +174,7 @@ canvas.addEventListener('click',e=>{
  const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/camera.z+camera.x,y=(e.clientY-r.top)/camera.z+camera.y;
  walkTo({x,y});
 });
+cinderButton.addEventListener('click',castCinder);
 near.addEventListener('click',()=>{if(!near.hidden)openConversation(near.dataset.target);});
 guide.addEventListener('click',()=>{const h=LANDMARKS.find(x=>x.id===objectiveId(story));if(h)walkTo(h,h.id);});
 markerButton.addEventListener('click',()=>toggleMarkers(!markerMode));
@@ -173,13 +188,14 @@ window.addEventListener('keydown',e=>{
   else if(!e.repeat&&(key==='e'||((key==='enter'||key===' ')&&e.target!==nextButton))){e.preventDefault();advanceConversation();}
   return;
  }
- if(movementKeys.has(key)){e.preventDefault();keys.add(key);}
+ if(key==='f'&&!e.repeat){e.preventDefault();castCinder();return;}
+ if(movementKeys.has(key)){e.preventDefault();cinderTime=null;keys.add(key);}
  if(key==='e'&&!e.repeat){e.preventDefault();doNearest();}
 });
 window.addEventListener('keyup',e=>{keys.delete(e.key.toLowerCase());});
 window.addEventListener('blur',()=>keys.clear());
 document.addEventListener('visibilitychange',()=>{if(document.hidden){keys.clear();cancelAnimationFrame(raf);}else if(ready){last=0;raf=requestAnimationFrame(frame);}});
-restart.addEventListener('click',()=>{if(ready){keys.clear();confirm.showModal();}});
+restart.addEventListener('click',()=>{if(ready){cinderTime=null;keys.clear();confirm.showModal();}});
 $('#cancel-restart').onclick=()=>confirm.close();
 $('#yes-restart').onclick=()=>{
  confirm.close();story=initialStory();p={...SPAWN,facing:'n'};keys.clear();cancelPath();talked=null;dialogue.hidden=true;startedAt=walkTime=0;
@@ -190,6 +206,10 @@ async function boot(){
  try{
   [art,atlas,inkIdle]=await Promise.all([image('assets/ferry-landing.png'),image(INK_WALK_ASSET),image(INK_SE_IDLE_ASSET)]);
   if(art.width!==WORLD.w||art.height!==WORLD.h||atlas.width!==INK_CELL_WIDTH*INK_COLUMNS||atlas.height!==INK_CELL_HEIGHT*INK_WALK_DIRECTIONS.length||inkIdle.width!==412||inkIdle.height!==1048)throw new Error('The art or courier sheet is not the expected version.');
+  image(CINDER_ASSET).then(sprite=>{
+   if(sprite.naturalWidth!==CINDER_SIZE.width||sprite.naturalHeight!==CINDER_SIZE.height)throw new Error('Unexpected Cinder Fist sheet size.');
+   cinderArt=sprite;cinderButton.disabled=false;
+  }).catch(console.warn);
   createPins();ready=true;loading.hidden=true;guide.disabled=false;restart.disabled=false;resize();updateObjective();raf=requestAnimationFrame(frame);
  }catch(e){
   loading.querySelector('strong').textContent='The quay could not load.';
