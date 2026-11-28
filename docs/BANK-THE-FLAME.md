@@ -1,0 +1,7 @@
+# Bank the Flame
+
+Press **B** or choose **Bank the Flame** in the free-movement scene. The skill draws from the nearest still-lit flame source within **140 world units**, measured from the courier’s feet to the source’s ground anchor. Outside that range, a brief ring shows the radius. A successful cast locks movement and other casts for 1,460 ms. The drained source stays dark until scene reset. This is a visual prototype; it adds no combat effects or stat changes.
+
+The 12-frame, transparent Sorceress character strip is at `dist/assets/bank-the-flame-courier.png` (192 × 256 per cel). The run used the standard front idle on bright green (`#00FF00`), and the original GitHub idle pixels were used for the endpoints; the art does not contain a prop, fire, or post-cast heat. Preserve the exact standard idle at the end of future skill animations. The approved artwork is the same as in the private Cove Way dock playtest.
+
+`dist/bank-the-flame.mjs` separates the cast timing, donor selection, wick-to-palm path and brief absorption glow. A donor has a ground position for the radius, a world-space wick point, and a mutable lit state. New sources provide their own lit/unlit rendering; do not redraw the character or bake a source into the animation. The GitHub scene already has lanterns painted into the backdrop, so the ticket and market lanterns use local dark glass patches instead of the private prototype’s standalone lamp sprite; the rest of the illustration and the tactical-grid prototype are unchanged.
