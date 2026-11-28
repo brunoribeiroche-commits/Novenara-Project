@@ -24,3 +24,7 @@ The village currently supports movement, dialogue and the parcel delivery. Press
 - [Legacy V4 courier atlas](docs/COURIER-MODEL.md)
 - [Grid prototype](docs/GRID-VILLAGE.md)
 - [Visual style guide](docs/VISUAL-STYLE-GUIDE.md)
+
+### Gust
+
+Face the practice barrel on the quay and press **R** or choose **Gust**. See [Gust animation and playtest notes](docs/GUST.md) for the alignment, timing, and remaining work.

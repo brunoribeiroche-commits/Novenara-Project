@@ -1,8 +1,9 @@
+import {ART as WINDS,CASTS,DURATION as GUST_DURATION,PUSH_MS,castFacing,castFrame,castBounds,gustWindBounds,windFrame,planBarrelHit,barrelSlide,barrelAt} from './gust.mjs';
 import {BANK_RADIUS,BANK_ART,BANK_DARK_LAMP,BANK_W,BANK_H,BANK_CELS,BANK_DURATION,nearestBankSource,bankCel,bankPalm,bankHeat,lampDarkening,paintBankTransfer} from './bank-the-flame.mjs';
 import {EMBER_MS,emberAnchor,SE_IDLE_EMBER,EAST_IDLE_SPILL,paintEmber} from './cinder-ember.mjs';
 import {CINDER_ASSET,CINDER_SIZE,CINDER_DURATION,CINDER_FINAL_IDLE,CINDER_IDLE_OVERLAY,cinderCel,cinderBounds} from './cinder-fist.mjs';
 import {INK_WALK_ASSET,INK_SE_IDLE_ASSET,INK_CELL_WIDTH,INK_CELL_HEIGHT,INK_COLUMNS,INK_WALK_DIRECTIONS,inkWalkFrame,inkWalkBounds,inkSeIdleBounds,inkWalkHeading} from './courier-ink-walk.mjs';
-import {WORLD,SPAWN,LANDMARKS,closestLandmark,pathTo,distance,moveWithin,initialStory,objective,objectiveId,interact,isWalkable} from './world.mjs';
+import {WORLD,SPAWN,LANDMARKS,closestLandmark,pathTo,distance,moveWithin,initialStory,objective,objectiveId,interact,isWalkable,GUST_BARREL_START,GUST_BARREL_FOOTPRINT,barrelCanOccupy,setGustBarrel} from './world.mjs';
 
 const $=s=>document.querySelector(s);
 const canvas=$('#world'),stage=$('#stage'),ctx=canvas.getContext('2d');
@@ -10,14 +11,15 @@ const pins=$('#pins'),near=$('#near'),dialogue=$('#dialogue'),nextButton=$('#con
 const status=$('#status'),guide=$('#guide'),markerButton=$('#markers'),confirm=$('#restart-confirm');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const mobile=matchMedia('(pointer: coarse)');
-const cinderButton=$('#cinder'),bankButton=$('#bank');
+const cinderButton=$('#cinder'),bankButton=$('#bank'),gustButton=$('#gust');
 const flameSources=[
  {id:'ticket-lantern',ground:{x:590,y:510},wick:{x:589,y:282},glass:{x:558,y:238,col:0},lit:true},
  {id:'market-lantern',ground:{x:1320,y:535},wick:{x:1330,y:371},glass:{x:1290,y:315,col:1},lit:true}
 ];
 let bankArt=null,bankGlass=null,bankCast=null,rangeUntil=0;
 let cinderArt=null,cinderFinal=null,cinderOverlay=null,cinderTime=null,emberStarted=null;
-const castingSkill=()=>cinderTime!==null||bankCast!==null;
+let gustArt=null,gustCast=null,barrelArt=null,barrelPos={...GUST_BARREL_START};
+const castingSkill=()=>cinderTime!==null||bankCast!==null||gustCast!==null;
 let art,atlas,inkIdle,ready=false,markerMode=true;
 let p={...SPAWN,facing:'n'}, camera={x:0,y:0,z:1}, width=0,height=0,pixelRatio=1,cameraReady=false;
 let path=[], autoTarget=null, clickTarget=null, talked=null, story=initialStory();
@@ -35,6 +37,7 @@ function castCinder(){
 function refreshSkills(){
  cinderButton.disabled=!cinderArt||castingSkill();
  bankButton.disabled=!bankArt||castingSkill();
+ gustButton.disabled=!gustArt||!barrelArt||castingSkill();
 }
 function castBank(){
  if(!ready||!bankArt||!bankGlass||talked||confirm.open||castingSkill())return;
@@ -46,6 +49,45 @@ function castBank(){
  }
  rangeUntil=0;keys.clear();cancelPath();bankCast={source,time:0};refreshSkills();
  notify('Bank the Flame: drawing from the nearest lit source.');
+}
+function bodyAt(y){return 74*(1.57+Math.min(1,Math.max(0,(y-245)/460))*.36);}
+function castGust(){
+ if(!ready||!gustArt||!barrelArt||talked||confirm.open||castingSkill())return;
+ keys.clear();cancelPath();
+ const d=p.facing,{halfW,halfD}=GUST_BARREL_FOOTPRINT;
+ gustCast={d,time:0,hit:planBarrelHit(p,barrelPos,d,bodyAt(p.y),halfW,halfD),applied:false,push:null};
+ notify('Gust: '+d.toUpperCase()+'.');refreshSkills();
+}
+function advanceGust(dt){
+ if(!gustCast)return;
+ const g=gustCast;g.time+=dt;
+ if(g.hit&&!g.applied&&g.time>=g.hit.at){
+  g.applied=true;
+  const from={...barrelPos};
+  const to=barrelSlide(from,g.hit,q=>barrelCanOccupy(q)&&distance(q,p)>36,62);
+  if(distance(from,to)>0){g.push={from,to};notify('Gust catches the barrel and slides it back.');}
+  else notify('The gust hit. The barrel has nowhere to slide.');
+ }
+ if(g.push){barrelPos=barrelAt(g.push.from,g.push.to,reduced.matches?PUSH_MS:g.time-g.hit.at);}
+ if(g.time>=GUST_DURATION){
+  if(g.push)setGustBarrel(barrelPos);
+  if(!g.applied)notify('The gust dispersed. Try facing the barrel from closer up.');
+  gustCast=null;refreshSkills();
+ }
+}
+function drawBarrel(z){
+ if(!barrelArt)return;
+ const [x,y]=project(barrelPos.x,barrelPos.y),w=55*z,h=59*z;
+ ctx.save();ctx.fillStyle='#221b1866';ctx.beginPath();ctx.ellipse(x,y,23*z,5*z,0,0,Math.PI*2);ctx.fill();
+ ctx.drawImage(barrelArt,x-w/2,y-h,w,h);ctx.restore();
+ canvas.dataset.barrelX=barrelPos.x.toFixed(2);canvas.dataset.barrelY=barrelPos.y.toFixed(2);
+}
+function drawGustWind(x,y,body){
+ const g=gustCast,f=windFrame(g.d,g.time,reduced.matches);
+ if(!f)return;
+ const a=WINDS[g.d],b=gustWindBounds({x,y},body,g.d);
+ ctx.save();ctx.globalAlpha=f.opacity;ctx.drawImage(gustArt.wind[g.d],f.sx,f.sy,a.size,a.size,b.x,b.y,b.w,b.h);ctx.restore();
+ canvas.dataset.gustWind=g.d;
 }
 function pixelScale(){
  const fit=Math.max(width/WORLD.w,height/WORLD.h);
@@ -153,16 +195,24 @@ function draw(now){
   const [x,y]=project(clickTarget.x,clickTarget.y);
   ctx.save();ctx.strokeStyle='#fce5a4b5';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(x,y,6,3.5,0,0,Math.PI*2);ctx.stroke();ctx.restore();
  }
- const [x,y]=project(p.x,p.y),n=Math.min(1,Math.max(0,(p.y-245)/460)),scale=(1.57+n*.36)*z;
+ if(barrelPos.y<=p.y)drawBarrel(z);
+ const [x,y]=project(p.x,p.y),n=Math.min(1,Math.max(0,(p.y-245)/460));
  ctx.save();ctx.fillStyle='#10140b72';ctx.beginPath();ctx.ellipse(x,y-1,20*z*(.82+.18*n),7*z,0,0,Math.PI*2);ctx.fill();ctx.restore();
  // Keep the V4 standing height on this map. The dock playtest has its own scale.
- const body=74*scale,clock=walkTime>0&&!reduced.matches?walkTime:null;
+ const body=bodyAt(p.y)*z,clock=walkTime>0&&!reduced.matches?walkTime:null;
  // The cast is front-facing artwork, not a change to locomotion facing.
  if(!bankCast)delete canvas.dataset.bankFrame;
  const cast=cinderTime===null?null:cinderCel(reduced.matches?CINDER_DURATION-1:cinderTime);
  if(cast)canvas.dataset.cinderFrame=String(cast.index+1);
  else delete canvas.dataset.cinderFrame;
- if(bankCast&&bankArt){
+ delete canvas.dataset.gustFrame;delete canvas.dataset.gustWind;
+ canvas.dataset.facing=p.facing;
+ if(gustCast&&gustArt){
+  const g=gustCast,dir=castFacing(g.d),a=CASTS[dir],i=castFrame(g.time,reduced.matches),b=castBounds({x,y},body,dir);
+  if(g.d.includes('n'))drawGustWind(x,y,body);
+  ctx.drawImage(gustArt.cast[dir],i*a.w,0,a.w,256,b.x,b.y,b.w,b.h);
+  canvas.dataset.gustFrame=String(i+1);
+ }else if(bankCast&&bankArt){
   const i=bankCel(bankCast.time),pos=inkWalkBounds(x,y,body);
   canvas.dataset.bankFrame=String(i+1);
   const heat=bankHeat(bankCast.time);
@@ -185,6 +235,8 @@ function draw(now){
   ctx.drawImage(atlas,sx,sy,INK_CELL_WIDTH,INK_CELL_HEIGHT,pos.x,pos.y,pos.w,pos.h);
   if(a?.visibility===1)paintEmber(ctx,cinderOverlay,pos,a,body,now,emberStarted,shimmer);
  }
+ if(barrelPos.y>p.y)drawBarrel(z);
+ if(gustCast&&!gustCast.d.includes('n'))drawGustWind(x,y,body);
  positionPins();
 }
 function movement(dt){
@@ -231,6 +283,7 @@ function frame(now){
    notify('Flame banked. The source has gone dark.');
   }
  }
+ advanceGust(dt*1000);
  if(emberStarted!==null&&now-emberStarted>=EMBER_MS)emberStarted=null;
  if(movement(dt)){if(!startedAt)startedAt=now;walkTime=Math.max(1,now-startedAt);}else{startedAt=0;walkTime=0;}
  promptNear();draw(now);raf=requestAnimationFrame(frame);
@@ -242,6 +295,7 @@ canvas.addEventListener('click',e=>{
 });
 cinderButton.addEventListener('click',castCinder);
 bankButton.addEventListener('click',castBank);
+gustButton.addEventListener('click',castGust);
 near.addEventListener('click',()=>{if(!near.hidden)openConversation(near.dataset.target);});
 guide.addEventListener('click',()=>{const h=LANDMARKS.find(x=>x.id===objectiveId(story));if(h)walkTo(h,h.id);});
 markerButton.addEventListener('click',()=>toggleMarkers(!markerMode));
@@ -250,12 +304,13 @@ const movementKeys=new Set(['arrowleft','arrowright','arrowup','arrowdown','w','
 window.addEventListener('keydown',e=>{
  const key=e.key.toLowerCase();
  if(!ready||confirm.open||e.metaKey||e.ctrlKey||e.altKey||e.target.closest?.('input, textarea, select, [contenteditable="true"]'))return;
- if(castingSkill()&&(movementKeys.has(key)||key==='f'||key==='e'||key==='b')){e.preventDefault();return;}
+ if(castingSkill()&&(movementKeys.has(key)||key==='f'||key==='e'||key==='b'||key==='r')){e.preventDefault();return;}
  if(talked){
   if(key==='escape'){e.preventDefault();finishConversation();}
   else if(!e.repeat&&(key==='e'||((key==='enter'||key===' ')&&e.target!==nextButton))){e.preventDefault();advanceConversation();}
   return;
  }
+ if(key==='r'&&!e.repeat){e.preventDefault();castGust();return;}
  if(key==='b'&&!e.repeat){e.preventDefault();castBank();return;}
  if(key==='f'&&!e.repeat){e.preventDefault();castCinder();return;}
  if(movementKeys.has(key)){e.preventDefault();keys.add(key);}
@@ -267,7 +322,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){keys.clear
 restart.addEventListener('click',()=>{if(ready&&!castingSkill()){keys.clear();confirm.showModal();}});
 $('#cancel-restart').onclick=()=>confirm.close();
 $('#yes-restart').onclick=()=>{
- confirm.close();emberStarted=null;bankCast=null;rangeUntil=0;for(const source of flameSources)source.lit=true;refreshSkills();story=initialStory();p={...SPAWN,facing:'n'};keys.clear();cancelPath();talked=null;dialogue.hidden=true;startedAt=walkTime=0;
+ confirm.close();gustCast=null;barrelPos={...GUST_BARREL_START};setGustBarrel(barrelPos);emberStarted=null;bankCast=null;rangeUntil=0;for(const source of flameSources)source.lit=true;refreshSkills();story=initialStory();p={...SPAWN,facing:'n'};keys.clear();cancelPath();talked=null;dialogue.hidden=true;startedAt=walkTime=0;
  targetCamera(true);updateObjective();promptNear();canvas.focus({preventScroll:true});notify('Chapter restarted at the ferry.');
 };
 async function boot(){
@@ -285,6 +340,13 @@ async function boot(){
     glass.naturalWidth!==128||glass.naturalHeight!==72)throw new Error('Unexpected Bank the Flame artwork size.');
    bankArt=courier;bankGlass=glass;refreshSkills();
   }).catch(console.warn);
+  const loadSet=(entries,verify)=>Promise.all(Object.entries(entries).map(async ([direction,a])=>{
+   const sprite=await image(a.asset);if(!verify(sprite,a))throw Error('Unexpected Gust sprite size: '+direction);
+   return [direction,sprite];
+  })).then(Object.fromEntries);
+  Promise.all([loadSet(CASTS,(i,a)=>i.naturalWidth===a.w*12&&i.naturalHeight===256),
+   loadSet(WINDS,(i,a)=>i.naturalWidth===a.size*a.cols&&i.naturalHeight===a.size*a.rows),
+   image('assets/gust/barrel.webp')]).then(([cast,wind,barrel])=>{gustArt={cast,wind};barrelArt=barrel;refreshSkills();}).catch(console.warn);
   createPins();ready=true;loading.hidden=true;guide.disabled=false;restart.disabled=false;resize();updateObjective();raf=requestAnimationFrame(frame);
  }catch(e){
   loading.querySelector('strong').textContent='The quay could not load.';
