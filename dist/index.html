@@ -17,7 +17,7 @@
 <main class="shell">
  <article class="chapter" aria-label="Cove Way playable opening">
   <div class="game-window" id="stage">
-   <canvas id="world" tabindex="0" aria-label="Ferry landing. Use arrow keys or W A S D to walk, E to speak or interact, and F to cast Cinder Fist. You can also click the path or tap a labelled landmark."></canvas>
+   <canvas id="world" tabindex="0" aria-label="Ferry landing. Use arrow keys or W A S D to walk, E to speak or interact, F to cast Cinder Fist, and B to Bank the Flame. You can also click the path or tap a labelled landmark."></canvas>
    <div id="pins" aria-label="Landmark controls"></div>
    <div class="corner-title" aria-hidden="true"><span>01 / ARRIVAL</span><strong>The lower quay</strong></div>
    <div class="loading" id="loading" role="status"><span></span><strong>Coming ashore…</strong></div>
@@ -33,10 +33,10 @@
     <span class="journal-icon" aria-hidden="true">⌖</span>
     <div><p class="caps" id="journal-label">COURIER’S NOTE</p><h1 id="objective" aria-live="polite">Check in at the ticket office</h1><p class="hint" id="hint">One parcel from the country road. Start at the ferry landing.</p></div>
    </div>
-   <div class="dashboard-actions"><button type="button" id="guide" class="light" disabled>Show me the way <span aria-hidden="true">↗</span></button> <button type="button" id="cinder" class="light" disabled>Cinder Fist</button></div>
+   <div class="dashboard-actions"><button type="button" id="guide" class="light" disabled>Show me the way <span aria-hidden="true">↗</span></button> <button type="button" id="cinder" class="light" disabled>Cinder Fist</button> <button type="button" id="bank" class="light" disabled>Bank the Flame</button></div>
   </div>
  </article>
- <div class="help-row"><p class="desktop-help"><b>WASD</b> or <b>arrows</b> to walk. <b>E</b> to interact. <b>F</b> to cast Cinder Fist. You can also click the quay.</p><p class="mobile-help">Tap the path to walk, or tap a marker to approach and talk.</p><button type="button" class="quiet" id="restart" disabled>Restart chapter</button></div>
+ <div class="help-row"><p class="desktop-help"><b>WASD</b> or <b>arrows</b> to walk. <b>E</b> to interact. <b>F</b> for Cinder Fist. <b>B</b> for Bank the Flame. You can also click the quay.</p><p class="mobile-help">Tap the path to walk, or tap a marker to approach and talk.</p><button type="button" class="quiet" id="restart" disabled>Restart chapter</button></div>
  <p class="live-sr" id="status" aria-live="polite"></p>
 </main>
 <dialog id="restart-confirm" aria-labelledby="restart-title">
