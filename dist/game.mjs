@@ -1,4 +1,5 @@
-import {WORLD,SPAWN,LANDMARKS,closestLandmark,pathTo,distance,moveWithin,faceFor,initialStory,objective,objectiveId,interact,isWalkable} from './world.mjs';
+import {INK_WALK_ASSET,INK_SE_IDLE_ASSET,INK_CELL_WIDTH,INK_CELL_HEIGHT,INK_COLUMNS,INK_WALK_DIRECTIONS,inkWalkFrame,inkWalkBounds,inkSeIdleBounds,inkWalkHeading} from './courier-ink-walk.mjs';
+import {WORLD,SPAWN,LANDMARKS,closestLandmark,pathTo,distance,moveWithin,initialStory,objective,objectiveId,interact,isWalkable} from './world.mjs';
 
 const $=s=>document.querySelector(s);
 const canvas=$('#world'),stage=$('#stage'),ctx=canvas.getContext('2d');
@@ -6,8 +7,8 @@ const pins=$('#pins'),near=$('#near'),dialogue=$('#dialogue'),nextButton=$('#con
 const status=$('#status'),guide=$('#guide'),markerButton=$('#markers'),confirm=$('#restart-confirm');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const mobile=matchMedia('(pointer: coarse)');
-let art,atlas,meta,ready=false,markerMode=true;
-let p={...SPAWN,facing:'north'}, camera={x:0,y:0,z:1}, width=0,height=0,pixelRatio=1,cameraReady=false;
+let art,atlas,inkIdle,ready=false,markerMode=true;
+let p={...SPAWN,facing:'n'}, camera={x:0,y:0,z:1}, width=0,height=0,pixelRatio=1,cameraReady=false;
 let path=[], autoTarget=null, clickTarget=null, talked=null, story=initialStory();
 let startedAt=0,walkTime=0,last=0, raf=0;
 const keys=new Set(),buttonById=new Map();
@@ -110,10 +111,15 @@ function draw(now){
  }
  const [x,y]=project(p.x,p.y),n=Math.min(1,Math.max(0,(p.y-245)/460)),scale=(1.57+n*.36)*z;
  ctx.save();ctx.fillStyle='#10140b72';ctx.beginPath();ctx.ellipse(x,y-1,20*z*(.82+.18*n),7*z,0,0,Math.PI*2);ctx.fill();ctx.restore();
- const column=walkTime>0?meta.walkColumns[Math.floor(walkTime/meta.frameMs)%meta.walkColumns.length]:meta.idleColumn;
- const row=meta.rows[p.facing];
- ctx.imageSmoothingEnabled=false;
- ctx.drawImage(atlas,column*meta.cell.width,row*meta.cell.height,meta.cell.width,meta.cell.height,Math.round(x-meta.anchor.x*scale),Math.round(y-meta.anchor.y*scale),Math.round(meta.cell.width*scale),Math.round(meta.cell.height*scale));
+ // Keep the V4 standing height on this map. The dock playtest has its own scale.
+ const body=74*scale,clock=walkTime>0&&!reduced.matches?walkTime:null;
+ if(clock===null&&p.facing==='se'){
+  const pos=inkSeIdleBounds(x,y,body,inkIdle.naturalWidth,inkIdle.naturalHeight);
+  ctx.drawImage(inkIdle,pos.x,pos.y,pos.w,pos.h);
+ }else{
+  const {sx,sy}=inkWalkFrame(p.facing,clock),pos=inkWalkBounds(x,y,body);
+  ctx.drawImage(atlas,sx,sy,INK_CELL_WIDTH,INK_CELL_HEIGHT,pos.x,pos.y,pos.w,pos.h);
+ }
  positionPins();
 }
 function movement(dt){
@@ -127,7 +133,7 @@ function movement(dt){
  if(deltaX||deltaY){
   cancelPath();const factor=deltaX&&deltaY?diag:1;
   const ox=p.x,oy=p.y,next=moveWithin(p,deltaX*factor*speed*dt,deltaY*factor*speed*dt);
-  Object.assign(p,next);p.facing=faceFor(p.x-ox,p.y-oy,faceFor(deltaX,deltaY,p.facing));
+  Object.assign(p,next);p.facing=inkWalkHeading(p.x-ox,p.y-oy,p.facing);
   return Math.hypot(p.x-ox,p.y-oy)>.01;
  }
  if(!path.length)return false;
@@ -138,7 +144,7 @@ function movement(dt){
   const dx=q.x-p.x,dy=q.y-p.y,amount=Math.min(remaining,d);
   const nx=p.x+dx*amount/d,ny=p.y+dy*amount/d;
   if(!isWalkable(nx,ny)){cancelPath();break;}
-  p.facing=faceFor(dx,dy,p.facing);p.x=nx;p.y=ny;remaining-=amount;moved=true;
+  p.facing=inkWalkHeading(dx,dy,p.facing);p.x=nx;p.y=ny;remaining-=amount;moved=true;
   if(d===amount)path.shift();
  }
  if(!path.length&&autoTarget){const chosen=autoTarget;autoTarget=null;openConversation(chosen);}
@@ -176,14 +182,14 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){keys.clear
 restart.addEventListener('click',()=>{if(ready){keys.clear();confirm.showModal();}});
 $('#cancel-restart').onclick=()=>confirm.close();
 $('#yes-restart').onclick=()=>{
- confirm.close();story=initialStory();p={...SPAWN,facing:'north'};keys.clear();cancelPath();talked=null;dialogue.hidden=true;startedAt=walkTime=0;
+ confirm.close();story=initialStory();p={...SPAWN,facing:'n'};keys.clear();cancelPath();talked=null;dialogue.hidden=true;startedAt=walkTime=0;
  targetCamera(true);updateObjective();promptNear();canvas.focus({preventScroll:true});notify('Chapter restarted at the ferry.');
 };
 async function boot(){
  const loading=$('#loading');
  try{
-  [art,atlas,meta]=await Promise.all([image('assets/ferry-landing.png'),image('assets/courier.png'),fetch('assets/courier.json',{credentials:'same-origin'}).then(r=>{if(!r.ok)throw new Error('Courier sheet could not load.');return r.json();})]);
-  if(art.width!==WORLD.w||art.height!==WORLD.h||meta.cell.width!==96||meta.cell.height!==96||atlas.width!==480||atlas.height!==384)throw new Error('The art or courier sheet is not the expected version.');
+  [art,atlas,inkIdle]=await Promise.all([image('assets/ferry-landing.png'),image(INK_WALK_ASSET),image(INK_SE_IDLE_ASSET)]);
+  if(art.width!==WORLD.w||art.height!==WORLD.h||atlas.width!==INK_CELL_WIDTH*INK_COLUMNS||atlas.height!==INK_CELL_HEIGHT*INK_WALK_DIRECTIONS.length||inkIdle.width!==412||inkIdle.height!==1048)throw new Error('The art or courier sheet is not the expected version.');
   createPins();ready=true;loading.hidden=true;guide.disabled=false;restart.disabled=false;resize();updateObjective();raf=requestAnimationFrame(frame);
  }catch(e){
   loading.querySelector('strong').textContent='The quay could not load.';
